@@ -6,10 +6,15 @@
     <i class="bi bi-heart-pulse-fill text-danger" style="font-size: 4rem;"></i>
     <h1 class="display-4 fw-bold mt-3">ClinAI</h1>
     <p class="lead text-muted">AI-Powered Clinical Decision Support System</p>
-    <p class="text-muted mb-4">Leyte Normal University · BSIT-AI22 · Group 7</p>
-    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-5">
-      <i class="bi bi-box-arrow-in-right me-2"></i>Login to Continue
-    </a>
+    <p class="text-muted mb-4">Clinical workflows supported by intelligent healthcare insights.</p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="{{ url_for('auth.user_login') }}" class="btn btn-primary btn-lg px-4">
+        <i class="bi bi-box-arrow-in-right me-2"></i>User Login
+      </a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg px-4">
+        <i class="bi bi-person-plus-fill me-2"></i>Register User
+      </a>
+    </div>
   </div>
 
   <div class="container py-5">
@@ -46,8 +51,7 @@
   </div>
 
   <footer class="text-center text-muted py-4">
-    <small>Research Paper: Healthcare Professionals: Perspectives on AI Integration in Clinical Practice<br>
-    BSIT-AI22 Group 7 · Leyte Normal University · 2026</small>
+    <small>ClinAI © 2026. Trusted AI support for healthcare professionals.</small>
   </footer>
 </div>
 {% endblock %}

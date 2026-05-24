@@ -9,8 +9,15 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
-  {% if current_user.is_authenticated %}
-  <!-- SIDEBAR -->
+  {% set is_admin_page = request.blueprint == 'admin' %}
+
+  {% macro render_page_content() %}
+    <div class="container-fluid px-4 pb-5">
+      {% block page_content %}{% endblock %}
+    </div>
+  {% endmacro %}
+
+  {% if is_admin_page or current_user.is_authenticated %}
   <div class="d-flex" id="wrapper">
     <nav id="sidebar" class="sidebar">
       <div class="sidebar-brand">
@@ -19,8 +26,16 @@
       </div>
       <hr class="sidebar-divider" />
 
-      {% if current_user.is_admin() %}
-      <!-- ADMIN NAV -->
+      {% if is_admin_page %}
+      <p class="sidebar-label">Admin Panel</p>
+      <ul class="sidebar-nav">
+        <li><a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if (request.endpoint or '') == 'admin.dashboard' }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+        <li><a href="{{ url_for('admin.users') }}" class="{{ 'active' if 'admin.users' in (request.endpoint or '') }}"><i class="bi bi-people-fill"></i> Manage Users</a></li>
+        <li><a href="{{ url_for('admin.patients') }}" class="{{ 'active' if (request.endpoint or '') == 'admin.patients' }}"><i class="bi bi-folder2-open"></i> All Patients</a></li>
+        <li><a href="{{ url_for('admin.reports') }}" class="{{ 'active' if (request.endpoint or '') == 'admin.reports' }}"><i class="bi bi-bar-chart-fill"></i> Reports</a></li>
+        <li><a href="{{ url_for('admin.audit') }}" class="{{ 'active' if (request.endpoint or '') == 'admin.audit' }}"><i class="bi bi-journal-text"></i> Audit Logs</a></li>
+      </ul>
+      {% elif current_user.is_admin() %}
       <p class="sidebar-label">Admin Panel</p>
       <ul class="sidebar-nav">
         <li><a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if (request.endpoint or '') == 'admin.dashboard' }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
@@ -30,7 +45,6 @@
         <li><a href="{{ url_for('admin.audit') }}" class="{{ 'active' if (request.endpoint or '') == 'admin.audit' }}"><i class="bi bi-journal-text"></i> Audit Logs</a></li>
       </ul>
       {% else %}
-      <!-- USER NAV -->
       <p class="sidebar-label">Clinical Tools</p>
       <ul class="sidebar-nav">
         <li><a href="{{ url_for('user.dashboard') }}" class="{{ 'active' if (request.endpoint or '') == 'user.dashboard' }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
@@ -40,26 +54,25 @@
       </ul>
       {% endif %}
 
+      {% if not is_admin_page %}
       <div class="sidebar-footer">
         <a href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
       </div>
+      {% endif %}
     </nav>
 
-    <!-- PAGE CONTENT -->
     <div id="page-content-wrapper">
-      <!-- TOP NAVBAR -->
       <nav class="navbar navbar-expand-lg top-navbar">
         <button class="btn btn-sm" id="sidebarToggle"><i class="bi bi-list fs-4"></i></button>
         <span class="ms-3 text-muted small">{% block breadcrumb %}{% endblock %}</span>
         <div class="ms-auto d-flex align-items-center gap-3 me-3">
-          <span class="badge {% if current_user.is_admin() %}bg-danger{% else %}bg-primary{% endif %}">
-            {{ current_user.role|upper }}
+          <span class="badge {% if is_admin_page %}bg-danger{% elif current_user.is_admin() %}bg-danger{% else %}bg-primary{% endif %}">
+            {% if is_admin_page %}ADMIN{% else %}{{ current_user.role|upper }}{% endif %}
           </span>
-          <strong class="small">{{ current_user.full_name or current_user.username }}</strong>
+          <strong class="small">{% if is_admin_page %}Administrator{% else %}{{ current_user.full_name or current_user.username }}{% endif %}</strong>
         </div>
       </nav>
 
-      <!-- FLASH MESSAGES -->
       <div class="container-fluid px-4 pt-3">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -73,14 +86,10 @@
         {% endwith %}
       </div>
 
-      <!-- MAIN CONTENT -->
-      <div class="container-fluid px-4 pb-5">
-        {{ self.page_content() }}
-      </div>
+      {{ render_page_content() }}
     </div>
   </div>
   {% else %}
-  <!-- NOT LOGGED IN -->
   <div>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -93,11 +102,11 @@
         </div>
       {% endif %}
     {% endwith %}
-    {{ self.page_content() }}
+    {{ render_page_content() }}
   </div>
   {% endif %}
-  {% block page_content %}{% endblock %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

@@ -15,9 +15,11 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@admin_bp.route('/')
+def root():
+    return redirect(url_for('admin.dashboard'))
+
 @admin_bp.route('/dashboard')
-@login_required
-@admin_required
 def dashboard():
     total_users = User.query.filter_by(role='user').count()
     total_patients = Patient.query.count()
@@ -32,15 +34,11 @@ def dashboard():
                            recent_consultations=recent_consultations)
 
 @admin_bp.route('/users')
-@login_required
-@admin_required
 def users():
     all_users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/users.html', users=all_users)
 
 @admin_bp.route('/users/add', methods=['GET', 'POST'])
-@login_required
-@admin_required
 def add_user():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -78,8 +76,6 @@ def add_user():
     return render_template('admin/add_user.html')
 
 @admin_bp.route('/users/toggle/<int:user_id>')
-@login_required
-@admin_required
 def toggle_user(user_id):
     user = User.query.get_or_404(user_id)
     if user.id == current_user.id:
@@ -95,15 +91,11 @@ def toggle_user(user_id):
     return redirect(url_for('admin.users'))
 
 @admin_bp.route('/patients')
-@login_required
-@admin_required
 def patients():
     all_patients = Patient.query.order_by(Patient.created_at.desc()).all()
     return render_template('admin/patients.html', patients=all_patients)
 
 @admin_bp.route('/reports')
-@login_required
-@admin_required
 def reports():
     total_users = User.query.filter_by(role='user').count()
     total_patients = Patient.query.count()
@@ -120,8 +112,6 @@ def reports():
                            consultations_by_status=consultations_by_status)
 
 @admin_bp.route('/audit')
-@login_required
-@admin_required
 def audit():
     logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(100).all()
     return render_template('admin/audit.html', logs=logs)

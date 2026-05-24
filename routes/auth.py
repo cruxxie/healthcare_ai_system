@@ -43,9 +43,54 @@ def login():
 
     return render_template('auth/login.html')
 
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        if current_user.is_admin():
+            return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('user.dashboard'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        full_name = request.form.get('full_name', '').strip()
+        password = request.form.get('password', '')
+
+        if not username or not email or not full_name or not password:
+            flash('Please complete all registration fields.', 'warning')
+            return render_template('auth/register.html')
+
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists.', 'danger')
+            return render_template('auth/register.html')
+
+        if User.query.filter_by(email=email).first():
+            flash('Email already exists.', 'danger')
+            return render_template('auth/register.html')
+
+        user = User(
+            username=username,
+            email=email,
+            full_name=full_name,
+            role='user',
+            is_active=True
+        )
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        log_action(user.id, 'REGISTER', f'New user registered: {username}', request)
+        flash('Registration successful. Please log in.', 'success')
+        return redirect(url_for('auth.user_login'))
+
+    return render_template('auth/register.html')
+
+@auth_bp.route('/user/register', methods=['GET', 'POST'])
+def user_register():
+    return register()
+
 @auth_bp.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    return login()
+    return redirect(url_for('admin.root'))
 
 @auth_bp.route('/user/login', methods=['GET', 'POST'])
 def user_login():
